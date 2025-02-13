@@ -1,0 +1,67 @@
+#!/data/data/com.termux/files/usr/bin/bash
+
+pkg update && pkg upgrade -y
+pkg install -y mariadb git openjdk-17 nodejs-lts curl
+clear
+
+# Download kotatsu-syncserver (Pre-built) and example database
+curl -L https://github.com/dragonx943/kotatsu-syncserver/releases/download/0.0.1/kotatsu.jar -o ~/kotatsu.jar
+curl -L https://raw.githubusercontent.com/dragonx943/kotatsu-syncserver/refs/heads/master/database.sql -o ~/database.sql
+
+# Run MariaDB
+$PREFIX/bin/mariadbd-safe --datadir="$PREFIX/var/lib/mysql" >/dev/null 2>&1 & disown
+clear
+
+# Setup MariaDB / MySQL
+echo "Next, setup MariaDB for the first time! Select "y" for all, set strong password for security!"
+sleep 15
+mysql_secure_installation
+
+# Get current Termux username
+USER=$(whoami)
+
+# Enter MariaDB / MySQL password
+clear
+while true; do
+    read -sp "Type your MariaDB password again (Just once for all): " PASSWORD
+    echo ""
+    
+    # Check MariaDB password
+    if mysql -u "$USER" -p"$PASSWORD" -e "quit" >/dev/null 2>&1; then
+        echo "✅ Correct password, please wait..."
+        sleep 5
+        break
+    else
+        echo "❌ Incorrect password, please try again..."
+        sleep 10
+    fi
+done
+
+clear
+# Create new database
+mysql -u "$USER" -p"$PASSWORD" -e "CREATE DATABASE kotatsu_db;"
+mysql -h localhost -u "$USER" -p"$PASSWORD" kotatsu_db < ~/database.sql
+
+# Get JWT_SECRET
+KEY=${node -e "console.log(require('crypto').randomBytes(32).toString('hex'));"}
+
+# Create "start" script
+cat <<EOF > $PREFIX/bin/start
+#!/data/data/com.termux/files/usr/bin/bash
+
+export JWT_SECRET=$KEY
+export DATABASE_USER=$USER
+export DATABASE_PASSWORD=$PASSWORD
+
+# Start MariaDB server
+$PREFIX/bin/mariadbd-safe --datadir="$PREFIX/var/lib/mysql" >/dev/null 2>&1 & disown
+
+# Run Kotatsu-syncserver
+java -jar ~/kotatsu.jar
+EOF
+
+# Grant perms for "start" script
+chmod +x $PREFIX/bin/start
+
+echo "Done! Restart Termux app and type "start" to run your data synchronization server for Kotatsu!"
+echo "--> Your server is located at: http://127.0.0.1:8080 when you are running it!"
