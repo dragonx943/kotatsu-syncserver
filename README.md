@@ -34,6 +34,15 @@ After the authorization/registration process, you will return back to the **Cont
 Yes, you can use your synchronization server in the application by specifying its address (`Options -> Settings -> Services -> Synchronization settings -> Server address`). Instructions for deploying the server are below.
 
 ## Installation
+
+### Termux
+
+Just run this command:
+
+```bash
+	curl -o- https://raw.githubusercontent.com/dragonx943/kotatsu-syncserver/refs/heads/master/run | bash
+```
+
 ### MySQL schema
 
 Before deploying the sync server, you have to run the SQL script to setup the schema for your MySQL database:
