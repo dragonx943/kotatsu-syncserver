@@ -40,7 +40,7 @@ Yes, you can use your synchronization server in the application by specifying it
 Just run this command:
 
 ```bash
-	curl -o- https://raw.githubusercontent.com/dragonx943/kotatsu-syncserver/refs/heads/master/run | bash
+curl -o- https://raw.githubusercontent.com/dragonx943/kotatsu-syncserver/refs/heads/master/run | bash
 ```
 
 ### MySQL schema
