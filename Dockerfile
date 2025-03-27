@@ -1,29 +1,22 @@
-FROM gradle:8-jdk11-alpine AS build
-
-COPY --chown=gradle:gradle . /home/gradle/src
-WORKDIR /home/gradle/src
-RUN gradle shadowJar --no-daemon
-
 FROM openjdk:11
 RUN mkdir /app
-COPY --from=build /home/gradle/src/build/libs/*-all.jar /app/kotatsu-syncserver.jar
-COPY --from=build /home/gradle/src/database.sql /app/database.sql
-COPY --from=build /home/gradle/src/entrypoint.sh /app/entrypoint.sh
+COPY ./database.sql /app/database.sql
+COPY ./entrypoint.sh /app/entrypoint.sh
 
 RUN chmod +x /app/entrypoint.sh
 
 RUN apt-get update && \
     apt-get install -y mariadb-server nodejs && \
-    apt-get clean
+    apt-get clean && curl -o /app/kotatsu-syncserver.jar https://github.com/dragonx943/kotatsu-syncserver/releases/download/0.0.1/kotatsu.jar
 
 RUN echo 'root:root' | chpasswd && passwd -u root
 
-ENV DATABASE_PASSWORD=root
 ENV DATABASE_USER=root
-
 RUN service mariadb start && \
     mysql -e "CREATE DATABASE kotatsu_db;" && \
-    mysql -h localhost -u $DATABASE_USER -p $DATABASE_PASSWORD kotatsu_db < /app/database.sql
+    echo "Done #1" && \
+    mariadb -h localhost -u $DATABASE_USER kotatsu_db < /app/database.sql && \
+    echo "Done #2"
 
 RUN node -e "console.log(require('crypto').randomBytes(32).toString('hex'));" > /app/JWT_SECRET
 CMD export JWT_SECRET=$(cat /app/JWT_SECRET)
