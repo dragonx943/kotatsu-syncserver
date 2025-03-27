@@ -1,13 +1,17 @@
 FROM ubuntu:jammy
+
 RUN mkdir /app
-COPY database* /app
-COPY entrypoint* /app
+COPY . /app
 
 RUN chmod +x /app/entrypoint.sh
 
 RUN apt-get update && \
     apt-get install -y mariadb-server nodejs openjdk-17-jdk curl && \
-    apt-get clean && curl -o /app/kotatsu-syncserver.jar https://raw.githubusercontent.com/dragonx943/kotatsu-syncserver/master/kotatsu.jar
+    apt-get clean
+
+WORKDIR /app
+RUN chmod a+x gradlew && ./gradlew shadowJar
+COPY /app/build/libs/*-all.jar /app/kotatsu-syncserver.jar
 
 RUN echo 'root:root' | chpasswd && passwd -u root
 
