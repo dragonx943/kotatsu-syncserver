@@ -13,7 +13,7 @@ COPY --from=build /home/gradle/src/entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
 
 RUN apt-get update && \
-    apt-get install -y mysql-server nodejs && \
+    apt-get install -y mariadb-server nodejs && \
     apt-get clean
 
 RUN echo 'root:root' | chpasswd && passwd -u root
@@ -21,7 +21,7 @@ RUN echo 'root:root' | chpasswd && passwd -u root
 ENV DATABASE_PASSWORD=root
 ENV DATABASE_USER=root
 
-RUN service mysql start && \
+RUN service mariadb start && \
     mysql -e "CREATE DATABASE kotatsu_db;" && \
     mysql -h localhost -u $DATABASE_USER -p $DATABASE_PASSWORD kotatsu_db < /app/database.sql
 
