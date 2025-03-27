@@ -1,13 +1,13 @@
 FROM openjdk:11
 RUN mkdir /app
-COPY ./database.sql /app/database.sql
-COPY ./entrypoint.sh /app/entrypoint.sh
+COPY database* /app
+COPY entrypoint* /app
 
 RUN chmod +x /app/entrypoint.sh
 
 RUN apt-get update && \
     apt-get install -y mariadb-server nodejs && \
-    apt-get clean && curl -o /app/kotatsu-syncserver.jar https://github.com/dragonx943/kotatsu-syncserver/releases/download/0.0.1/kotatsu.jar
+    apt-get clean && curl -o /app/kotatsu-syncserver.jar https://raw.githubusercontent.com/dragonx943/kotatsu-syncserver/master/kotatsu.jar
 
 RUN echo 'root:root' | chpasswd && passwd -u root
 
@@ -23,4 +23,4 @@ CMD export JWT_SECRET=$(cat /app/JWT_SECRET)
 
 # Deploy
 EXPOSE 8080
-ENTRYPOINT ["/app/entrypoint.sh"]
+ENTRYPOINT ["bash", "/app/entrypoint.sh"]
