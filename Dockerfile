@@ -6,7 +6,7 @@ COPY entrypoint* /app
 RUN chmod +x /app/entrypoint.sh
 
 RUN apt-get update && \
-    apt-get install -y mariadb-server nodejs openjdk-17-jdk && \
+    apt-get install -y mariadb-server nodejs openjdk-17-jdk curl && \
     apt-get clean && curl -o /app/kotatsu-syncserver.jar https://raw.githubusercontent.com/dragonx943/kotatsu-syncserver/master/kotatsu.jar
 
 RUN echo 'root:root' | chpasswd && passwd -u root
